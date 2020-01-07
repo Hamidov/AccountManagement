@@ -56,4 +56,50 @@ public class Account {
         this.balance = balance;
     }
 
+    public synchronized void makeOperation(final Operation operation) {
+        if(null == operation) {
+            throw new NullPointerException("the operation cannot be NULL");
+        }
+        switch (operation.getOperationType()) {
+            case DEPOSIT:
+                deposit(operation);
+                break;
+            case WITHDRAWAL:
+                withdrawal(operation);
+                break;
+        }
+    }
+
+    private void deposit(final Operation operation) {
+        if(null == operation.getAmount()) {
+            throw new NullPointerException("the amount cannot be NULL");
+        }
+        if(operation.getAmount().signum() == -1 || operation.getAmount().signum() == 0 ) {
+            throw new IllegalArgumentException("we cannot deposit negative or zero amount");
+        }
+        operations.add(operation);
+        operation.setBalance(balance);
+        balance  = balance.add(operation.getAmount());
+    }
+
+    private void withdrawal(final Operation operation) {
+        if(null == operation.getAmount()) {
+            throw new NullPointerException("the amount cannot be NULL");
+        }
+        if(operation.getAmount().signum() == -1 || operation.getAmount().signum() == 0 ) {
+            throw new IllegalArgumentException("we cannot withdrawal negative or zero amount");
+        }
+        if(balance.compareTo(operation.getAmount()) == -1) {
+            LOGGER.warn("you don't have enough to make this withdrawal");
+            return;
+        }
+        operations.add(operation);
+        operation.setBalance(balance);
+        balance  = balance.subtract(operation.getAmount());
+    }
+
+    public void showHistory() {
+        LOGGER.info("the List of operations : ");
+        operations.forEach(operation -> LOGGER.info(operation.toString()));
+    }
 }
